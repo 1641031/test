@@ -9,7 +9,7 @@ import { RolesModule } from './roles/roles.module';
 
 // ConfigModule.forRoot() 可以读取 .env 文件
 
-import ormconfig from 'ormconfig';
+import { connectionParams } from 'ormconfig';
 // import { ConfigEnum } from './enum/config.enum';
 // import { Logs } from 'src/logs/logs.entity';
 // import { Roles } from 'src/roles/roles.entity';
@@ -42,7 +42,7 @@ const envFilePath = `.env.${process.env.NODE_ENV || `development`}`;
         DB_SYNC: Joi.boolean().default(false),
       }),
     }),
-    TypeOrmModule.forRoot(ormconfig),
+    TypeOrmModule.forRoot(connectionParams),
     // TypeOrmModule.forRootAsync({
     //   imports: [ConfigModule],
     //   inject: [ConfigService],
