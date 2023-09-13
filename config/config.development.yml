@@ -1,0 +1,16 @@
+# {
+#     "token_secret":"long-secret",
+#     "db":{
+#         "host":"localhost",
+#         "port":5432,
+#         "username":"toimc",
+#         "password":"example"
+#     }
+# }
+
+db:
+    mysql1:
+        name: mysql-dev1
+    
+    mysql2:
+        name: mysql-dev2
