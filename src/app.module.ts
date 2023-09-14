@@ -9,7 +9,7 @@ import { RolesModule } from './roles/roles.module';
 
 // ConfigModule.forRoot() 可以读取 .env 文件
 
-import { connectionParams } from 'ormconfig';
+import { connectionParams } from '../ormconfig';
 // import { ConfigEnum } from './enum/config.enum';
 // import { Logs } from 'src/logs/logs.entity';
 // import { Roles } from 'src/roles/roles.entity';
@@ -34,12 +34,17 @@ const envFilePath = `.env.${process.env.NODE_ENV || `development`}`;
           .default('development'),
         DB_PORT: Joi.number().default(3306),
         DB_URL: Joi.string().domain(),
-        DB_HOST: Joi.string().ip(),
+        DB_HOST: Joi.alternatives().try(
+          Joi.string().ip(),
+          Joi.string().domain(),
+        ),
         DB_TYPE: Joi.string().valid('mysql', 'postgres'),
         DB_DATABASE: Joi.string().required(),
         DB_USERNAME: Joi.string().required(),
         DB_PASSWORD: Joi.string().required(),
         DB_SYNC: Joi.boolean().default(false),
+        LOG_ON: Joi.boolean(),
+        LOG_LEVEL: Joi.string(),
       }),
     }),
     TypeOrmModule.forRoot(connectionParams),
