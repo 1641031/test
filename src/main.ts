@@ -1,6 +1,10 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { Logger } from '@nestjs/common';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { AppModule } from './app.module';
+
+import { AllExceptionFilter } from './filters/all-exception.filter';
+
 // import { createLogger } from 'winston';
 
 // import { HttpExceptionFilter } from './filters/http-exception.filter';
@@ -29,9 +33,12 @@ async function bootstrap() {
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
   app.setGlobalPrefix('api/v1');
 
-  // const httpAdapter = app.get(HttpAdapterHost);
+  // ----------------------------------------------------使用全局过滤的使用逻辑
+  const httpAdapter = app.get(HttpAdapterHost);
   // app.useGlobalFilters(new HttpExceptionFilter(logger));
-  // app.useGlobalFilters(new AllExceptionFilter(logger, httpAdapter));
+  const logger = new Logger();
+  app.useGlobalFilters(new AllExceptionFilter(logger, httpAdapter));
+  // --------------------------------------------------------------------
   const port = 3000;
   await app.listen(port);
   // logger.warn(`App 运行在: ${port}`);

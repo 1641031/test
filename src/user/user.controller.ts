@@ -10,14 +10,17 @@ import {
   Patch,
   Post,
   Query,
+  UseFilters,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ConfigService } from '@nestjs/config';
 import { User } from './user.entity';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { getUserDto } from './dto/get-user.dto';
+import { TypeormFilter } from '../filters/typeorm.filter';
 
 @Controller('user')
+@UseFilters(new TypeormFilter())
 export class UserController {
   // Logger 全局模块
   // private logger = new Logger(UserController.name);
@@ -53,25 +56,6 @@ export class UserController {
     return this.userService.findProfile(2);
   }
 
-  @Get('/:id')
-  getUser(): any {
-    // const user = { isAdmin: false };
-    // if (!user.isAdmin) {
-    //   throw new UnauthorizedException('用户没有权限');
-    // }
-    // this.logger.log(`请求getUsers成功`);
-    // this.logger.warn(`请求getUsers成功`);
-    // this.logger.error(`请求getUsers成功`);
-    // // 命令行的方式 传递 DB_PASS
-    // 通过 配置文件 .env 的方式 传递 DB_PASS
-    // const password =
-    //   process.env.DB_PASS || this.configService.get(ConfigEnum.DB_PASSWORD);
-    // console.log('password-test', password);
-    // return this.userService.getUsers();
-    // return this.userService.findAll();
-    return 'hello world';
-  }
-
   @Post()
   addUser(@Body() dto: any): any {
     // const user = {username: 'toimc', password: '123456'} as User
@@ -79,6 +63,10 @@ export class UserController {
 
     const user = dto as User;
     return this.userService.create(user);
+  }
+  @Get('/:id')
+  getUser(): any {
+    return 'hello world';
   }
 
   @Patch('/:id')
