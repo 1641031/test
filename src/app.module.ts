@@ -15,6 +15,9 @@ import { connectionParams } from '../ormconfig';
 // import { Roles } from 'src/roles/roles.entity';
 // import { Profile } from 'src/user/profile.entity';
 // import { User } from 'src/user/user.entity';
+import { AuthModule } from './auth/auth.module';
+// import { APP_GUARD } from '@nestjs/core';
+// import { AdminGuard } from './guards/admin/admin.guard';
 
 // import Configuration from './configuration';
 // 取决于命令行命令所带的字符 prod or dev??
@@ -70,9 +73,16 @@ const envFilePath = `.env.${process.env.NODE_ENV || `development`}`;
     UserModule,
     LogsModule,
     RolesModule,
+    AuthModule,
   ],
   controllers: [],
-  providers: [Logger],
+  providers: [
+    Logger,
+    // {
+    //   // provide: APP_GUARD,
+    //   // useClass: AdminGuard, //这样可以在 admin.guard 里面去使用我们的 UserService了
+    // },
+  ],
   exports: [Logger],
 })
 export class AppModule {}

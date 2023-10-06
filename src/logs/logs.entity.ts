@@ -1,3 +1,4 @@
+// import { Expose } from 'class-transformer';
 import { User } from '../user/user.entity';
 import {
   Column,
@@ -24,7 +25,7 @@ export class Logs {
   @Column()
   result: number;
 
-  @ManyToOne(() => User, (user) => user.logs)
+  @ManyToOne(() => User, (user) => user.logs, { onDelete: 'CASCADE' })
   @JoinColumn()
   user: User;
 }

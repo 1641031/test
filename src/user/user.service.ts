@@ -1,16 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { User } from './user.entity';
 import { Logs } from '../logs/logs.entity';
+import { Roles } from '../roles/roles.entity';
 import { getUserDto } from './dto/get-user.dto';
 import { conditionUtils } from '../utils/db.helper';
+import * as argon2 from 'argon2';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Logs) private readonly logsRepository: Repository<Logs>,
+    @InjectRepository(Roles)
+    private readonly rolesRepository: Repository<Roles>,
   ) {}
 
   //   getUsersRange(params: any): any {
@@ -120,16 +124,47 @@ export class UserService {
     return newQuery.take(take).skip(skip).getMany();
   }
   find(username: string) {
-    return this.userRepository.findOne({ where: { username } });
+    return this.userRepository.findOne({
+      where: { username },
+      relations: ['roles'],
+    });
   }
 
   findOne(id: number) {
     return this.userRepository.findOne({ where: { id } });
   }
-  async create(user: User) {
-    const userTmp = await this.userRepository.create(user);
 
+  // ------------创建
+  async create(user: Partial<User>) {
+    if (!user.roles) {
+      const role = await this.rolesRepository.findOne({
+        where: { id: 2 },
+      });
+      console.log(
+        '🚀 ~ file: user.service.ts:139 ~ UserService ~ create ~ role:',
+        role,
+      );
+      user.roles = [role];
+    }
+    if (user.roles instanceof Array && typeof user.roles[0] === 'number') {
+      // 查询所有的用户角色,将查询到的对象，存入该变量
+      // ------
+      // {id, name} -> { id } -> [id]
+      // 查询所有的用户角色
+      user.roles = await this.rolesRepository.find({
+        where: {
+          id: In(user.roles),
+        },
+      });
+      console.log(
+        '🚀 ~ file: user.service.ts:136 ~ UserService ~ create ~ user.roles:',
+        user.roles,
+      );
+    }
+    const userTmp = await this.userRepository.create(user);
     // try {
+    // 对用户密码使用 argon2 加密
+    userTmp.password = await argon2.hash(userTmp.password);
     const res = await this.userRepository.save(userTmp);
     return res;
     // } catch (error) {
@@ -138,12 +173,27 @@ export class UserService {
     //   }
     // }
   }
+  // ------------更新
   async update(id: number, user: Partial<User>) {
-    return this.userRepository.update(id, user);
+    const userTemp = await this.findProfile(id);
+    const newUser = this.userRepository.merge(userTemp, user);
+    // 联合模型更新，需要使用save 方法或者 queryBuilder
+    return this.userRepository.save(newUser);
   }
-  remove(id: number) {
-    return this.userRepository.delete(id);
+  // ------------删除
+  async remove(id: number) {
+    console.log(
+      '🚀 ~ file: user.service.ts:166 ~ UserService ~ remove ~ id:',
+      id,
+    );
+    const user = await this.userRepository.findOne({
+      where: {
+        id,
+      },
+    });
+    return this.userRepository.remove(user);
   }
+
   findProfile(id: number) {
     return this.userRepository.findOne({
       where: {
@@ -156,15 +206,18 @@ export class UserService {
   }
 
   async findUserLogs(id: number) {
-    const user = await this.findOne(id);
-    return this.logsRepository.find({
-      where: {
-        user,
-      },
+    const user = await this.userRepository.findOne({
+      where: { id },
       relations: {
-        user: true,
+        logs: true,
       },
     });
+    return user.logs;
+    // return this.logsRepository.find({
+    //   where: {
+    //     user: user.logs,
+    //   },
+    // });
   }
 
   findLogsByGroup(id: number) {
